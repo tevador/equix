@@ -33,13 +33,13 @@ static bool verify_unique(const equix_solution* solution) {
 
 static bool verify_order(const equix_solution* solution) {
 	return
-		(solution->idx[0] < solution->idx[4]) &
-		(solution->idx[0] < solution->idx[2]) &
-		(solution->idx[0] < solution->idx[1]) &
-		(solution->idx[2] < solution->idx[3]) &
-		(solution->idx[4] < solution->idx[6]) &
-		(solution->idx[4] < solution->idx[5]) &
-		(solution->idx[6] < solution->idx[7]);
+		(solution->idx[0] <= solution->idx[4]) &
+		(solution->idx[0] <= solution->idx[2]) &
+		(solution->idx[0] <= solution->idx[1]) &
+		(solution->idx[2] <= solution->idx[3]) &
+		(solution->idx[4] <= solution->idx[6]) &
+		(solution->idx[4] <= solution->idx[5]) &
+		(solution->idx[6] <= solution->idx[7]);
 }
 
 static uint64_t sum_pair(hashx_ctx* hash_func, equix_idx left, equix_idx right) {
