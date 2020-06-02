@@ -12,6 +12,8 @@
 #define NUM_FINE_BUCKETS 128
 #define COARSE_BUCKET_ITEMS 336
 #define FINE_BUCKET_ITEMS 12
+#define NUM_DUP_BUCKETS 128
+#define DUP_BUCKET_ITEMS 6
 
 typedef uint16_t fine_item;
 
@@ -91,6 +93,15 @@ typedef struct stage3_data_hashtab {
 typedef stage2_idx_hashtab stage3_idx_hashtab;
 typedef stage2_idx_item stage3_idx_item;
 
+typedef struct dup_bucket {
+	stage2_idx_item items[DUP_BUCKET_ITEMS];
+} dup_bucket;
+
+typedef struct dup_hashtab {
+	uint8_t counts[NUM_DUP_BUCKETS];
+	dup_bucket buckets[NUM_DUP_BUCKETS];
+} dup_hashtab;
+
 typedef struct solver_heap {
     stage1_idx_hashtab stage1_indices;           /* 172 544 bytes */
     stage2_idx_hashtab stage2_indices;           /* 344 576 bytes */
@@ -103,6 +114,7 @@ typedef struct solver_heap {
         };
     };
     fine_hashtab scratch_ht;                     /*   3 200 bytes */
-} solver_heap;                          /* TOTAL: 1 897 088 bytes */
+    dup_hashtab dup_ht;                          /*   3 200 bytes */
+} solver_heap;                          /* TOTAL: 1 900 288 bytes */
 
 #endif
