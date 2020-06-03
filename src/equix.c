@@ -11,35 +11,15 @@
 #include "solver.h"
 #include <hashx_endian.h>
 
-static int compare_indices(const void* pi1, const void* pi2) {
-	equix_idx i1 = *(equix_idx*)pi1;
-	equix_idx i2 = *(equix_idx*)pi2;
-	if (i1 < i2)
-		return -1;
-	if (i1 > i2)
-		return 1;
-	return 0;
-}
-
-static bool verify_unique(const equix_solution* solution) {
-	equix_solution sorted_solution;
-	memcpy(&sorted_solution, solution, sizeof(equix_solution));
-	qsort(&sorted_solution, EQUIX_NUM_IDX, sizeof(equix_idx), &compare_indices);
-	for (equix_idx i = 1; i < EQUIX_NUM_IDX; ++i)
-		if (sorted_solution.idx[i] == sorted_solution.idx[i - 1])
-			return false;
-	return true;
-}
-
 static bool verify_order(const equix_solution* solution) {
 	return
-		(solution->idx[0] <= solution->idx[4]) &
-		(solution->idx[0] <= solution->idx[2]) &
-		(solution->idx[0] <= solution->idx[1]) &
-		(solution->idx[2] <= solution->idx[3]) &
-		(solution->idx[4] <= solution->idx[6]) &
-		(solution->idx[4] <= solution->idx[5]) &
-		(solution->idx[6] <= solution->idx[7]);
+		tree_cmp4(&solution->idx[0], &solution->idx[4]) &
+		tree_cmp2(&solution->idx[0], &solution->idx[2]) &
+		tree_cmp2(&solution->idx[4], &solution->idx[6]) &
+		tree_cmp1(&solution->idx[0], &solution->idx[1]) &
+		tree_cmp1(&solution->idx[2], &solution->idx[3]) &
+		tree_cmp1(&solution->idx[4], &solution->idx[5]) &
+		tree_cmp1(&solution->idx[6], &solution->idx[7]);
 }
 
 static uint64_t sum_pair(hashx_ctx* hash_func, equix_idx left, equix_idx right) {
@@ -79,7 +59,7 @@ static equix_result verify_internal(hashx_ctx* hash_func, const equix_solution* 
 	if (pair6 & EQUIX_FULL_MASK) {
 		return EQUIX_FINAL_SUM;
 	}
-	return EQUIX_VALID;
+	return EQUIX_OK;
 }
 
 int equix_solve(
@@ -109,11 +89,8 @@ equix_result equix_verify(
 	if (!verify_order(solution)) {
 		return EQUIX_ORDER;
 	}
-	if (!verify_unique(solution)) {
-		return EQUIX_DUPLICATES;
-	}
 	if (!hashx_make(ctx->hash_func, challenge, challenge_size)) {
-		return EQUIX_INVALID_CHALL;
+		return EQUIX_CHALLENGE;
 	}
 	return verify_internal(ctx->hash_func, solution);
 }

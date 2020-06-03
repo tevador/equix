@@ -33,11 +33,10 @@ typedef struct equix_solution {
  * Solution verification results
  */
 typedef enum equix_result {
-    EQUIX_VALID,            /* Solution is valid */
-    EQUIX_INVALID_CHALL,    /* The challenge is invalid (the internal hash
+    EQUIX_OK,               /* Solution is valid */
+    EQUIX_CHALLENGE,        /* The challenge is invalid (the internal hash
                                function doesn't pass validation). */
-    EQUIX_DUPLICATES,       /* Some indices are duplicated. */
-    EQUIX_ORDER,            /* Indices are not in order. */
+    EQUIX_ORDER,            /* Indices are not in the correct order. */
     EQUIX_PARTIAL_SUM,      /* The partial sums of the hash values don't
                                have the required number of trailing zeroes. */
     EQUIX_FINAL_SUM         /* The hash values don't sum to zero. */

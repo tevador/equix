@@ -79,7 +79,7 @@ static void build_solution_stage1(equix_idx* output, solver_heap* heap, s2_idx r
 	s1_idx right_parent = STAGE1_IDX(bucket_inv, right_parent_idx);
 	output[0] = left_parent;
 	output[1] = right_parent;
-	if (output[0] > output[1]) {
+	if (!tree_cmp1(&output[0], &output[1])) {
 		SWAP_IDX(output[0], output[1]);
 	}
 }
@@ -93,7 +93,7 @@ static void build_solution_stage2(equix_idx* output, solver_heap* heap, s3_idx r
 	s2_idx right_parent = STAGE2_IDX(bucket_inv, right_parent_idx);
 	build_solution_stage1(&output[0], heap, left_parent);
 	build_solution_stage1(&output[2], heap, right_parent);
-	if (output[0] > output[2]) {
+	if (!tree_cmp2(&output[0], &output[2])) {
 		SWAP_IDX(output[0], output[2]);
 		SWAP_IDX(output[1], output[3]);
 	}
@@ -102,7 +102,7 @@ static void build_solution_stage2(equix_idx* output, solver_heap* heap, s3_idx r
 static void build_solution(equix_solution* solution, solver_heap* heap, s3_idx left, s3_idx right) {
 	build_solution_stage2(&solution->idx[0], heap, left);
 	build_solution_stage2(&solution->idx[4], heap, right);
-	if (solution->idx[0] > solution->idx[4]) {
+	if (!tree_cmp4(&solution->idx[0], &solution->idx[4])) {
 		SWAP_IDX(solution->idx[0], solution->idx[4]);
 		SWAP_IDX(solution->idx[1], solution->idx[5]);
 		SWAP_IDX(solution->idx[2], solution->idx[6]);

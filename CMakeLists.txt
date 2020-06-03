@@ -40,6 +40,7 @@ install(TARGETS equix_static
 add_executable(equix-bench
   src/bench.c)
 include_directories(equix-bench
-  include/)
+  include/
+  hashx/src/)
 target_link_libraries(equix-bench
   PRIVATE equix_static)

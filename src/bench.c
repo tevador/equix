@@ -7,37 +7,39 @@
 #include <string.h>
 #include <stdlib.h>
 #include <equix.h>
+#include <test_utils.h>
 
 typedef struct sols_for_seed {
 	equix_solution sols[EQUIX_MAX_SOLS];
 	int count;
 } sols_for_seed;
 
-inline static void read_option(const char* option, int argc, char** argv, bool* out) {
-	for (int i = 0; i < argc; ++i) {
-		if (strcmp(argv[i], option) == 0) {
-			*out = true;
-			return;
-		}
+static void print_solution(int nonce, const equix_solution* sol) {
+	output_hex((char*)&nonce, sizeof(nonce));
+	printf(" : { ");
+	for (int idx = 0; idx < EQUIX_NUM_IDX; ++idx) {
+		printf("%#06x%s", sol->idx[idx],
+			idx != EQUIX_NUM_IDX - 1 ? ", " : "");
 	}
-	*out = false;
+	printf(" }\n");
 }
 
-inline static void read_int_option(const char* option, int argc, char** argv, int* out, int default_val) {
-	for (int i = 0; i < argc - 1; ++i) {
-		if (strcmp(argv[i], option) == 0 && (*out = atoi(argv[i + 1])) > 0) {
-			return;
-		}
-	}
-	*out = default_val;
-}
+static const char* result_names[] = {
+	"OK",
+	"Invalid nonce",
+	"Indices out of order",
+	"Nonzero partial sum",
+	"Nonzero final sum"
+};
 
 int main(int argc, char** argv) {
-	int nonces;
-	bool interpret, huge_pages;
+	int nonces, start;
+	bool interpret, huge_pages, print_sols;
 	read_int_option("--nonces", argc, argv, &nonces, 500);
+	read_int_option("--start", argc, argv, &start, 0);
 	read_option("--interpret", argc, argv, &interpret);
 	read_option("--hugepages", argc, argv, &huge_pages);
+	read_option("--sols", argc, argv, &print_sols);
 	equix_ctx_flags flags = EQUIX_CTX_SOLVE;
 	if (!interpret) {
 		flags |= EQUIX_CTX_COMPILE;
@@ -59,27 +61,39 @@ int main(int argc, char** argv) {
 		printf("Error: memory allocation failure\n");
 		return 1;
 	}
-	printf("Solving %i nonces (interpret: %i, hugepages: %i) ...\n", nonces, interpret, huge_pages);
+	printf("Solving nonces %i-%i (interpret: %i, hugepages: %i) ...\n", start, start + nonces - 1, interpret, huge_pages);
 	int total_sols = 0;
 	clock_t clock_start, clock_end;
 	clock_start = clock();
-	for (int nonce = 0; nonce < nonces; ++nonce) {
-		int count = equix_solve(ctx, &nonce, sizeof(nonce), bench[nonce].sols);
+	for (int i = 0; i < nonces; ++i) {
+		int nonce = start + i;
+		int count = equix_solve(ctx, &nonce, sizeof(nonce), bench[i].sols);
 		total_sols += count;
-		bench[nonce].count = count;
+		bench[i].count = count;
 	}
 	clock_end = clock();
 	printf("%f solutions/nonce\n", total_sols / (double)nonces);
 	printf("%f solutions/sec.\n", total_sols / ((clock_end - clock_start) / (double)CLOCKS_PER_SEC));
+	if (print_sols) {
+		for (int i = 0; i < nonces; ++i) {
+			for (int sol = 0; sol < bench[i].count; ++sol) {
+				print_solution(start + i, &bench[i].sols[sol]);
+			}
+		}
+	}
 	clock_start = clock();
-	int result = 0;
-	for (int nonce = 0; nonce < nonces; ++nonce) {
-		for (int sol = 0; sol < bench[nonce].count; ++sol) {
-			result |= equix_verify(ctx, &nonce, sizeof(nonce), &bench[nonce].sols[sol]);
+	for (int i = 0; i < nonces; ++i) {
+		for (int sol = 0; sol < bench[i].count; ++sol) {
+			int nonce = start + i;
+			equix_result result = equix_verify(ctx, &nonce, sizeof(nonce), &bench[i].sols[sol]);
+			if (result != EQUIX_OK) {
+				printf("Invalid solution (%s):\n", result_names[result]);
+				print_solution(nonce, &bench[i].sols[sol]);
+			}
 		}
 	}
 	clock_end = clock();
 	printf("%f verifications/sec.\n", total_sols / ((clock_end - clock_start) / (double)CLOCKS_PER_SEC));
 	free(bench);
-	return result;
+	return 0;
 }
