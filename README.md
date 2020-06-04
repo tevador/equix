@@ -60,3 +60,11 @@ make
 ```
 ./equix-bench --nonces 1000
 ```
+
+## Donations
+
+You can support the development of Equi-X by sending XMR to this address:
+
+```
+85GkKXSD8EQ22EMC2ZKF64S6L6Lcm8Gr23VbAKB1zg6FUW81sUEmrvvRPoM3GCpUZSC9azCLdeityW2N3CVsV4CAC3p1evV
+```
