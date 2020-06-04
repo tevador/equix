@@ -16,21 +16,23 @@ Equi-X also has additional requirements that prove that the solution was found u
 ### Example solution
 
 ```
-H(0x6592) = 0x348a96fd685dcba \
-                              (+) = 0x357120e8ffb8000 \
-H(0x76b7) = 0x00e689eb975a346 /                        |
-                                                      (+) = 0x102552500000000 \
-H(0x74a6) = 0xacccc4ad2d06bcd \                        |                       |
-                              (+) = 0xdab431670048000 /                        |
-H(0xe259) = 0x2de76cb9d341433 /                                                |
+H(0x6c31) = 0xcfa5375c0a7f5d7 \
+                              (+) = 0xa73d9777f110000 \
+H(0x8803) = 0xd798601be690a29 /                        |
+                                                      (+) = 0xefdaadb00000000 \
+H(0x80c2) = 0xcabd8974bbee8d5 \                        |                       |
+                              (+) = 0x489d16380ef0000 /                        |
+H(0xa1db) = 0x7ddf8cc3530172b /                                                |
                                                                               (+) = 0
-H(0x6c31) = 0xcfa5375c0a7f5d7 \                                                |
-                              (+) = 0xa73d9777f110000 \                        |
-H(0x8803) = 0xd798601be690a29 /                        |                       |
-                                                      (+) = 0xefdaadb00000000 /
-H(0x80c2) = 0xcabd8974bbee8d5 \                        |
-                              (+) = 0x489d16380ef0000 /
-H(0xa1db) = 0x7ddf8cc3530172b /
+H(0x6592) = 0x348a96fd685dcba \                                                |
+                              (+) = 0x357120e8ffb8000 \                        |
+H(0x76b7) = 0x00e689eb975a346 /                        |                       |
+                                                      (+) = 0x102552500000000 /
+H(0x74a6) = 0xacccc4ad2d06bcd \                        |
+                              (+) = 0xdab431670048000 /
+H(0xe259) = 0x2de76cb9d341433 /
+
+
 ```
 
 ## Performance
@@ -38,10 +40,10 @@ H(0xa1db) = 0x7ddf8cc3530172b /
 The following table compares Equi-X with the most common variants of Equihash:
 
 |Algorithm |n  |k  |memory|solution size|verification<sup>1</sup>|CPU perf.<sup>2</sup>|GPU perf.<sup>3</sup>|
-|----------|---|---|------|-------------|------------|----------|---------|
-|**Equi-X**|60 |3  |1.9 MB|16 bytes     |50 μs       |2000 Sol/s|    -    |
-|ZCash     |200|9  |144 MB|1344 bytes   |150 μs      |30 Sol/s  |450 Sol/s|
-|BTG       |144|5  |2.5 GB|100 bytes    |10 μs       |1 Sol/s   |65 Sol/s |
+|----------|---|---|------|-------------|------------|-----------|----------|
+|**Equi-X**|60 |3  |1.9 MB|16 bytes     |~50 μs      |~2000 Sol/s|     -    |
+|Zcash     |200|9  |144 MB|1344 bytes   |>150 μs     |~30 Sol/s  |~500 Sol/s|
+|BTG       |144|5  |2.5 GB|100 bytes    |~10 μs      |~1 Sol/s   |~60 Sol/s |
 
 1. Using a single core of AMD Ryzen 1700 (approximate).
 2. Using 8 cores of AMD Ryzen 1700 (approximate).
