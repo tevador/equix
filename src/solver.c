@@ -32,32 +32,15 @@
 #define STAGE3_SIZE(buck) heap->stage3_indices.counts[buck]
 #define SCRATCH(buck, pos) heap->scratch_ht.buckets[buck].items[pos]
 #define SCRATCH_SIZE(buck) heap->scratch_ht.counts[buck]
-#define DUP_VAL(buck, pos) heap->dup_ht.buckets[buck].items[pos]
-#define DUP_SIZE(buck) heap->dup_ht.counts[buck]
-#define MAKE_DUP(idx,cpl) ((idx) << 9) | (cpl)
 #define SWAP_IDX(a, b)      \
     do {                    \
         equix_idx temp = a; \
         a = b;              \
         b = temp;           \
     } while(0)
-
-#define DUP_ENABLE
-
-#ifdef DUP_ENABLE
 #define CARRY (bucket_idx != 0)
 #define BUCK_START 0
 #define BUCK_END (NUM_COARSE_BUCKETS / 2 + 1)
-#define CLEAR_DUP if (cpl_bucket == bucket_idx) CLEAR(heap->dup_ht.counts)
-#define IS_DUP(heap, idx, cpl) \
-	(cpl_bucket == bucket_idx) && is_duplicated(heap, idx, cpl)
-#else
-#define BUCK_START 1
-#define BUCK_END (NUM_COARSE_BUCKETS / 2)
-#define CARRY 1
-#define CLEAR_DUP
-#define IS_DUP(heap, idx, cpl) 0
-#endif
 
 typedef uint32_t u32;
 typedef stage1_idx_item s1_idx;
@@ -124,36 +107,33 @@ static void solve_stage0(hashx_ctx* hash_func, solver_heap* heap) {
 	}
 }
 
-static bool is_duplicated(solver_heap* heap, u32 item_idx, u32 cpl_index) {
-	if (cpl_index == item_idx)
-		return true;
-	u32 dup_bucket = (item_idx + cpl_index) % NUM_DUP_BUCKETS;
-	u32 dup_size = DUP_SIZE(dup_bucket);
-	if (dup_size >= DUP_BUCKET_ITEMS) {
-		return true;
-	}
-	if (cpl_index < item_idx) {
-		u32 temp = item_idx;
-		item_idx = cpl_index;
-		cpl_index = temp;
-	}
-	u32 dup_val = MAKE_DUP(item_idx, cpl_index);
-	for (u32 dup_idx = 0; dup_idx < dup_size; ++dup_idx) {
-		if (dup_val == DUP_VAL(dup_bucket, dup_idx)) {
-			return true;
-		}
-	}
-	DUP_SIZE(dup_bucket) = dup_size + 1;
-	DUP_VAL(dup_bucket, dup_size) = dup_val;
-	return false;
-}
+#define MAKE_PAIRS1                                                           \
+    stage1_data_item value = STAGE1_DATA(bucket_idx, item_idx) + CARRY;       \
+    u32 fine_buck_idx = value % NUM_FINE_BUCKETS;                             \
+    u32 fine_cpl_bucket = INVERT_SCRATCH(fine_buck_idx);                      \
+    u32 fine_cpl_size = SCRATCH_SIZE(fine_cpl_bucket);                        \
+    for (u32 fine_idx = 0; fine_idx < fine_cpl_size; ++fine_idx) {            \
+        u32 cpl_index = SCRATCH(fine_cpl_bucket, fine_idx);                   \
+        stage1_data_item cpl_value = STAGE1_DATA(cpl_bucket, cpl_index);      \
+        stage1_data_item sum = value + cpl_value;                             \
+        assert((sum % NUM_FINE_BUCKETS) == 0);                                \
+        sum /= NUM_FINE_BUCKETS; /* 45 bits */                                \
+        u32 s2_buck_id = sum % NUM_COARSE_BUCKETS;                            \
+        u32 s2_item_id = STAGE2_SIZE(s2_buck_id);                             \
+        if (s2_item_id >= COARSE_BUCKET_ITEMS)                                \
+            continue;                                                         \
+        STAGE2_SIZE(s2_buck_id) = s2_item_id + 1;                             \
+        STAGE2_IDX(s2_buck_id, s2_item_id) =                                  \
+            MAKE_ITEM(bucket_idx, item_idx, cpl_index);                       \
+        STAGE2_DATA(s2_buck_id, s2_item_id) =                                 \
+            sum / NUM_COARSE_BUCKETS; /* 37 bits */                           \
+    }                                                                         \
 
 static void solve_stage1(solver_heap* heap) {
 	CLEAR(heap->stage2_indices.counts);
-	for (unsigned bucket_idx = BUCK_START; bucket_idx < BUCK_END; ++bucket_idx) {
+	for (u32 bucket_idx = BUCK_START; bucket_idx < BUCK_END; ++bucket_idx) {
 		u32 cpl_bucket = INVERT_BUCKET(bucket_idx);
 		CLEAR(heap->scratch_ht.counts);
-		CLEAR_DUP;
 		u32 cpl_buck_size = STAGE1_SIZE(cpl_bucket);
 		for (u32 item_idx = 0; item_idx < cpl_buck_size; ++item_idx) {
 			stage1_data_item value = STAGE1_DATA(cpl_bucket, item_idx);
@@ -163,39 +143,46 @@ static void solve_stage1(solver_heap* heap) {
 				continue;
 			SCRATCH_SIZE(fine_buck_idx) = fine_item_idx + 1;
 			SCRATCH(fine_buck_idx, fine_item_idx) = item_idx;
+			if (cpl_bucket == bucket_idx) {
+				MAKE_PAIRS1
+			}
 		}
-		u32 buck_size = STAGE1_SIZE(bucket_idx);
-		for (u32 item_idx = 0; item_idx < buck_size; ++item_idx) {
-			stage1_data_item value = STAGE1_DATA(bucket_idx, item_idx) + CARRY;
-			u32 fine_buck_idx = value % NUM_FINE_BUCKETS;
-			u32 fine_cpl_bucket = INVERT_SCRATCH(fine_buck_idx);
-			u32 fine_cpl_size = SCRATCH_SIZE(fine_cpl_bucket);
-			for (u32 fine_idx = 0; fine_idx < fine_cpl_size; ++fine_idx) {
-				u32 cpl_index = SCRATCH(fine_cpl_bucket, fine_idx);
-				if (IS_DUP(heap, item_idx, cpl_index)) /* avoid duplicates */
-					continue;
-				stage1_data_item cpl_value = STAGE1_DATA(cpl_bucket, cpl_index);
-				stage1_data_item sum = value + cpl_value;
-				assert((sum % NUM_FINE_BUCKETS) == 0);
-				sum /= NUM_FINE_BUCKETS; /* 45 bits */
-				u32 s2_buck_id = sum % NUM_COARSE_BUCKETS;
-				u32 s2_item_id = STAGE2_SIZE(s2_buck_id);
-				if (s2_item_id >= COARSE_BUCKET_ITEMS)
-					continue;
-				STAGE2_SIZE(s2_buck_id) = s2_item_id + 1;
-				STAGE2_IDX(s2_buck_id, s2_item_id) = MAKE_ITEM(bucket_idx, item_idx, cpl_index);
-				STAGE2_DATA(s2_buck_id, s2_item_id) = sum / NUM_COARSE_BUCKETS; /* 37 bits */
+		if (cpl_bucket != bucket_idx) {
+			u32 buck_size = STAGE1_SIZE(bucket_idx);
+			for (u32 item_idx = 0; item_idx < buck_size; ++item_idx) {
+				MAKE_PAIRS1
 			}
 		}
 	}
 }
 
+#define MAKE_PAIRS2                                                           \
+    stage2_data_item value = STAGE2_DATA(bucket_idx, item_idx) + CARRY;       \
+    u32 fine_buck_idx = value % NUM_FINE_BUCKETS;                             \
+    u32 fine_cpl_bucket = INVERT_SCRATCH(fine_buck_idx);                      \
+    u32 fine_cpl_size = SCRATCH_SIZE(fine_cpl_bucket);                        \
+    for (u32 fine_idx = 0; fine_idx < fine_cpl_size; ++fine_idx) {            \
+        u32 cpl_index = SCRATCH(fine_cpl_bucket, fine_idx);                   \
+        stage2_data_item cpl_value = STAGE2_DATA(cpl_bucket, cpl_index);      \
+        stage2_data_item sum = value + cpl_value;                             \
+        assert((sum % NUM_FINE_BUCKETS) == 0);                                \
+        sum /= NUM_FINE_BUCKETS; /* 30 bits */                                \
+        u32 s3_buck_id = sum % NUM_COARSE_BUCKETS;                            \
+        u32 s3_item_id = STAGE3_SIZE(s3_buck_id);                             \
+        if (s3_item_id >= COARSE_BUCKET_ITEMS)                                \
+            continue;                                                         \
+        STAGE3_SIZE(s3_buck_id) = s3_item_id + 1;                             \
+        STAGE3_IDX(s3_buck_id, s3_item_id) =                                  \
+            MAKE_ITEM(bucket_idx, item_idx, cpl_index);                       \
+        STAGE3_DATA(s3_buck_id, s3_item_id) =                                 \
+            sum / NUM_COARSE_BUCKETS; /* 22 bits */                           \
+    }                                                                         \
+
 static void solve_stage2(solver_heap* heap) {
 	CLEAR(heap->stage3_indices.counts);
-	for (unsigned bucket_idx = BUCK_START; bucket_idx < BUCK_END; ++bucket_idx) {
+	for (u32 bucket_idx = BUCK_START; bucket_idx < BUCK_END; ++bucket_idx) {
 		u32 cpl_bucket = INVERT_BUCKET(bucket_idx);
 		CLEAR(heap->scratch_ht.counts);
-		CLEAR_DUP;
 		u32 cpl_buck_size = STAGE2_SIZE(cpl_bucket);
 		for (u32 item_idx = 0; item_idx < cpl_buck_size; ++item_idx) {
 			stage2_data_item value = STAGE2_DATA(cpl_bucket, item_idx);
@@ -205,32 +192,40 @@ static void solve_stage2(solver_heap* heap) {
 				continue;
 			SCRATCH_SIZE(fine_buck_idx) = fine_item_idx + 1;
 			SCRATCH(fine_buck_idx, fine_item_idx) = item_idx;
+			if (cpl_bucket == bucket_idx) {
+				MAKE_PAIRS2
+			}
 		}
-		u32 buck_size = STAGE2_SIZE(bucket_idx);
-		for (u32 item_idx = 0; item_idx < buck_size; ++item_idx) {
-			stage2_data_item value = STAGE2_DATA(bucket_idx, item_idx) + CARRY;
-			u32 fine_buck_idx = value % NUM_FINE_BUCKETS;
-			u32 fine_cpl_bucket = INVERT_SCRATCH(fine_buck_idx);
-			u32 fine_cpl_size = SCRATCH_SIZE(fine_cpl_bucket);
-			for (u32 fine_idx = 0; fine_idx < fine_cpl_size; ++fine_idx) {
-				u32 cpl_index = SCRATCH(fine_cpl_bucket, fine_idx);
-				if (IS_DUP(heap, item_idx, cpl_index)) /* avoid duplicates */
-					continue;
-				stage2_data_item cpl_value = STAGE2_DATA(cpl_bucket, cpl_index);
-				stage2_data_item sum = value + cpl_value;
-				assert((sum % NUM_FINE_BUCKETS) == 0);
-				sum /= NUM_FINE_BUCKETS; /* 30 bits */
-				u32 s3_buck_id = sum % NUM_COARSE_BUCKETS;
-				u32 s3_item_id = STAGE3_SIZE(s3_buck_id);
-				if (s3_item_id >= COARSE_BUCKET_ITEMS)
-					continue;
-				STAGE3_SIZE(s3_buck_id) = s3_item_id + 1;
-				STAGE3_IDX(s3_buck_id, s3_item_id) = MAKE_ITEM(bucket_idx, item_idx, cpl_index);
-				STAGE3_DATA(s3_buck_id, s3_item_id) = sum / NUM_COARSE_BUCKETS; /* 22 bits */
+		if (cpl_bucket != bucket_idx) {
+			u32 buck_size = STAGE2_SIZE(bucket_idx);
+			for (u32 item_idx = 0; item_idx < buck_size; ++item_idx) {
+				MAKE_PAIRS2
 			}
 		}
 	}
 }
+
+#define MAKE_PAIRS3                                                           \
+    stage3_data_item value = STAGE3_DATA(bucket_idx, item_idx) + CARRY;       \
+    u32 fine_buck_idx = value % NUM_FINE_BUCKETS;                             \
+    u32 fine_cpl_bucket = INVERT_SCRATCH(fine_buck_idx);                      \
+    u32 fine_cpl_size = SCRATCH_SIZE(fine_cpl_bucket);                        \
+    for (u32 fine_idx = 0; fine_idx < fine_cpl_size; ++fine_idx) {            \
+        u32 cpl_index = SCRATCH(fine_cpl_bucket, fine_idx);                   \
+        stage3_data_item cpl_value = STAGE3_DATA(cpl_bucket, cpl_index);      \
+        stage3_data_item sum = value + cpl_value;                             \
+        assert((sum % NUM_FINE_BUCKETS) == 0);                                \
+        sum /= NUM_FINE_BUCKETS; /* 15 bits */                                \
+        if ((sum & EQUIX_STAGE1_MASK) == 0) {                                 \
+            /* we have a solution */                                          \
+            s3_idx item_left = STAGE3_IDX(bucket_idx, item_idx);              \
+            s3_idx item_right = STAGE3_IDX(cpl_bucket, cpl_index);            \
+            build_solution(&output[sols_found], heap, item_left, item_right); \
+            if (++(sols_found) >= EQUIX_MAX_SOLS) {                           \
+                return sols_found;                                            \
+            }                                                                 \
+        }                                                                     \
+    }                                                                         \
 
 static int solve_stage3(solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]) {
 	int sols_found = 0;
@@ -239,7 +234,6 @@ static int solve_stage3(solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]
 		u32 cpl_bucket = -bucket_idx & (NUM_COARSE_BUCKETS - 1);
 		bool nodup = cpl_bucket == bucket_idx;
 		CLEAR(heap->scratch_ht.counts);
-		CLEAR_DUP;
 		u32 cpl_buck_size = STAGE3_SIZE(cpl_bucket);
 		for (u32 item_idx = 0; item_idx < cpl_buck_size; ++item_idx) {
 			stage3_data_item value = STAGE3_DATA(cpl_bucket, item_idx);
@@ -249,32 +243,14 @@ static int solve_stage3(solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]
 				continue;
 			SCRATCH_SIZE(fine_buck_idx) = fine_item_idx + 1;
 			SCRATCH(fine_buck_idx, fine_item_idx) = item_idx;
+			if (cpl_bucket == bucket_idx) {
+				MAKE_PAIRS3
+			}
 		}
-		u32 buck_size = STAGE3_SIZE(bucket_idx);
-		for (u32 item_idx = 0; item_idx < buck_size; ++item_idx) {
-			stage3_data_item value = STAGE3_DATA(bucket_idx, item_idx)
-				+ (bucket_idx != 0); /* carry */
-			u32 fine_buck_idx = value % NUM_FINE_BUCKETS;
-			u32 fine_cpl_bucket = INVERT_SCRATCH(fine_buck_idx);
-			u32 fine_cpl_size = SCRATCH_SIZE(fine_cpl_bucket);
-			for (u32 fine_idx = 0; fine_idx < fine_cpl_size; ++fine_idx) {
-				u32 cpl_index = SCRATCH(fine_cpl_bucket, fine_idx);
-				if (IS_DUP(heap, item_idx, cpl_index)) /* avoid duplicates */
-					continue;
-				stage3_data_item cpl_value = STAGE3_DATA(cpl_bucket, cpl_index);
-				stage3_data_item sum = value + cpl_value;
-				assert((sum % NUM_FINE_BUCKETS) == 0);
-				sum /= NUM_FINE_BUCKETS; /* 15 bits */
-				if ((sum & EQUIX_STAGE1_MASK) == 0) {
-					/* we have a solution */
-					s3_idx item_left = STAGE3_IDX(bucket_idx, item_idx);
-					s3_idx item_right = STAGE3_IDX(cpl_bucket, cpl_index);
-					build_solution(&output[sols_found], heap, item_left, item_right);
-					sols_found++;
-					if (sols_found >= EQUIX_MAX_SOLS) {
-						return sols_found;
-					}
-				}
+		if (cpl_bucket != bucket_idx) {
+			u32 buck_size = STAGE3_SIZE(bucket_idx);
+			for (u32 item_idx = 0; item_idx < buck_size; ++item_idx) {
+				MAKE_PAIRS3
 			}
 		}
 	}
