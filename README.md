@@ -31,23 +31,21 @@ H(0x76b7) = 0x00e689eb975a346 /                        |                       |
 H(0x74a6) = 0xacccc4ad2d06bcd \                        |
                               (+) = 0xdab431670048000 /
 H(0xe259) = 0x2de76cb9d341433 /
-
-
 ```
 
 ## Performance
 
-The following table compares Equi-X with the most common variants of Equihash:
+|Algorithm |n  |k  |memory |solution size|verification <sup>1</sup>|CPU perf. <sup>2</sup>|GPU perf. <sup>3</sup>|
+|----------|---|---|-------|-------------|------------|-----------|----------|
+|**Equi-X**|60 |3  |1.8 MiB|16 bytes     |~50 μs      |2000 Sol/s|     ?    |
+|Zcash     |200|9  |144 MiB|1344 bytes   |>150 μs     |30 Sol/s  |~400 Sol/s <sup>4</sup>|
+|BTG       |144|5  |2.5 GiB|100 bytes    |~10 μs      |1 Sol/s   |~45 Sol/s <sup>5</sup>|
 
-|Algorithm |n  |k  |memory|solution size|verification<sup>1</sup>|CPU perf.<sup>2</sup>|GPU perf.<sup>3</sup>|
-|----------|---|---|------|-------------|------------|-----------|----------|
-|**Equi-X**|60 |3  |1.9 MB|16 bytes     |~50 μs      |~2000 Sol/s|     -    |
-|Zcash     |200|9  |144 MB|1344 bytes   |>150 μs     |~30 Sol/s  |~500 Sol/s|
-|BTG       |144|5  |2.5 GB|100 bytes    |~10 μs      |~1 Sol/s   |~60 Sol/s |
-
-1. Using a single core of AMD Ryzen 1700 (approximate).
-2. Using 8 cores of AMD Ryzen 1700 (approximate).
-3. Using NVIDIA GTX 1080 (approximate).
+1. Using AMD Ryzen 1700 with 1 thread.
+1. Using AMD Ryzen 1700 with 8/16 threads.
+1. Using NVIDIA GTX 1660 Ti.
+1. Estimated from http://www.zcashbenchmarks.info/ (GTX 1070)
+1. Estimated from https://miniz.ch/features/
 
 ## Build
 
