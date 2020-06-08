@@ -37,10 +37,17 @@ install(TARGETS equix_static
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
+if(NOT Threads_FOUND AND UNIX AND NOT APPLE)
+  set(THREADS_PREFER_PTHREAD_FLAG ON)
+  find_package(Threads)
+endif()
+
 add_executable(equix-bench
-  src/bench.c)
+  src/bench.c
+  hashx/src/hashx_thread.c)
 include_directories(equix-bench
   include/
   hashx/src/)
 target_link_libraries(equix-bench
-  PRIVATE equix_static)
+  PRIVATE equix_static
+  PRIVATE ${CMAKE_THREAD_LIBS_INIT})

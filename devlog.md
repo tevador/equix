@@ -112,12 +112,12 @@ The following table compares Equi-X with the most common variants of Equihash:
 
 |Algorithm |n  |k  |memory|solution size|verification <sup>1</sup>|CPU perf. <sup>2</sup>|GPU perf. <sup>3</sup>|
 |----------|---|---|-------|-------------|------------|-----------|----------|
-|**Equi-X**|60 |3  |1.8 MiB|16 bytes     |~50 μs      |2000 Sol/s|     ?    |
+|**Equi-X**|60 |3  |1.8 MiB|16 bytes     |~50 μs      |2400 Sol/s|     ?    |
 |Zcash     |200|9  |144 MiB|1344 bytes   |>150 μs     |30 Sol/s  |~400 Sol/s <sup>4</sup>|
 |BTG       |144|5  |2.5 GiB|100 bytes    |~10 μs      |1 Sol/s   |~45 Sol/s <sup>5</sup>|
 
 1. Using AMD Ryzen 1700 with 1 thread.
-1. Using AMD Ryzen 1700 with 8/16 threads.
+1. Using AMD Ryzen 1700 with 16 threads.
 1. Using NVIDIA GTX 1660 Ti.
 1. Estimated from http://www.zcashbenchmarks.info/ (GTX 1070)
 1. Estimated from https://miniz.ch/features/
