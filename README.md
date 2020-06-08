@@ -1,6 +1,8 @@
 # Equi-X
 
-Equi-X is a CPU-friendly client puzzle with fast verification. It is based on Equihash(60,3) with two major changes:
+Equi-X is a CPU-friendly [client puzzle](https://en.wikipedia.org/wiki/Client_Puzzle_Protocol)
+with fast verification and small solution size (16 bytes). It is based on Equihash(60,3) with
+two major changes:
 
 1. Blake2b hash function is replaced with [HashX](https://github.com/tevador/hashx).
 2. XOR is replaced with modular addition.
@@ -58,8 +60,13 @@ cmake ..
 make
 ```
 ```
+./equix-tests
 ./equix-bench --help
 ```
+
+## Design notes
+
+See [devlog.md](devlog.md)
 
 ## Donations
 
