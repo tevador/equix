@@ -37,6 +37,13 @@ install(TARGETS equix_static
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
+add_executable(equix-tests
+  src/tests.c)
+include_directories(equix-tests
+  include/)
+target_link_libraries(equix-tests
+  PRIVATE equix_static)
+
 if(NOT Threads_FOUND AND UNIX AND NOT APPLE)
   set(THREADS_PREFER_PTHREAD_FLAG ON)
   find_package(Threads)
