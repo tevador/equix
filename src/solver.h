@@ -25,6 +25,6 @@ static inline bool tree_cmp4(const equix_idx* left, const equix_idx* right) {
 	return load64(left) <= load64(right);
 }
 
-int equix_solver_solve(hashx_ctx* hash_func, solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]);
+EQUIX_PRIVATE int equix_solver_solve(hashx_ctx* hash_func, solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]);
 
 #endif

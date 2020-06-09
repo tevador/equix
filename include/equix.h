@@ -60,6 +60,29 @@ typedef enum equix_ctx_flags {
 /* Sentinel value used to indicate unsupported type */
 #define EQUIX_NOTSUPP ((equix_ctx*)-1)
 
+#if defined(_WIN32) || defined(__CYGWIN__)
+#define EQUIX_WIN
+#endif
+
+/* Shared/static library definitions */
+#ifdef EQUIX_WIN
+    #ifdef EQUIX_SHARED
+        #define EQUIX_API __declspec(dllexport)
+    #elif !defined(EQUIX_STATIC)
+        #define EQUIX_API __declspec(dllimport)
+    #else
+        #define EQUIX_API
+    #endif
+    #define EQUIX_PRIVATE
+#else
+    #ifdef EQUIX_SHARED
+        #define EQUIX_API __attribute__ ((visibility ("default")))
+    #else
+        #define EQUIX_API __attribute__ ((visibility ("hidden")))
+    #endif
+    #define EQUIX_PRIVATE __attribute__ ((visibility ("hidden")))
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -73,14 +96,14 @@ extern "C" {
  *         allocation failure and EQUIX_NOTSUPP if the requested type
  *         is not supported.
  */
-equix_ctx* equix_alloc(equix_ctx_flags flags);
+EQUIX_API equix_ctx* equix_alloc(equix_ctx_flags flags);
 
 /*
 * Free an Equi-X a context.
 *
 * @param ctx is a pointer to the context
 */
-void equix_free(equix_ctx* ctx);
+EQUIX_API void equix_free(equix_ctx* ctx);
 
 /*
  * Find Equi-X solutions for the given challenge.
@@ -93,7 +116,7 @@ void equix_free(equix_ctx* ctx);
  *
  * @return the number of solutions found
  */
-int equix_solve(
+EQUIX_API int equix_solve(
     equix_ctx* ctx,
     const void* challenge,
     size_t challenge_size,
@@ -109,7 +132,7 @@ int equix_solve(
  *
  * @return verification result
 */
-equix_result equix_verify(
+EQUIX_API equix_result equix_verify(
     equix_ctx* ctx,
     const void* challenge,
     size_t challenge_size,

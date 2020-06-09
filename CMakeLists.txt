@@ -3,6 +3,11 @@
 
 cmake_minimum_required(VERSION 2.8.8)
 
+set(EQUIX_VERSION 1)
+set(EQUIX_VERSION_MINOR 0)
+set(EQUIX_VERSION_PATCH 0)
+set(EQUIX_VERSION_STR "${EQUIX_VERSION}.${EQUIX_VERSION_MINOR}.${EQUIX_VERSION_PATCH}")
+
 project(equix)
 
 add_definitions(-DHASHX_SIZE=8)
@@ -19,11 +24,25 @@ if(NOT CMAKE_BUILD_TYPE)
   message(STATUS "Setting default build type: ${CMAKE_BUILD_TYPE}")
 endif()
 
+add_library(equix SHARED ${equix_sources})
+set_property(TARGET equix PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_property(TARGET equix PROPERTY PUBLIC_HEADER include/equix.h)
+include_directories(equix
+  include/
+  hashx/include/
+  hashx/src/)
+target_compile_definitions(equix PRIVATE HASHX_STATIC)
+target_compile_definitions(equix PRIVATE EQUIX_SHARED)
+target_link_libraries(equix
+  PRIVATE hashx_static)
+set_target_properties(equix PROPERTIES VERSION ${EQUIX_VERSION_STR}
+                                       SOVERSION ${EQUIX_VERSION})
+
 add_library(equix_static STATIC ${equix_sources})
 set_property(TARGET equix_static PROPERTY POSITION_INDEPENDENT_CODE ON)
-set_property(TARGET equix_static PROPERTY PUBLIC_HEADER include/equix.h)
 set_target_properties(equix_static PROPERTIES OUTPUT_NAME equix)
 target_compile_definitions(equix_static PRIVATE HASHX_STATIC)
+target_compile_definitions(equix_static PRIVATE EQUIX_STATIC)
 include_directories(equix_static
   include/
   hashx/include/
@@ -32,7 +51,7 @@ target_link_libraries(equix_static
   PRIVATE hashx_static)
 
 include(GNUInstallDirs)
-install(TARGETS equix_static
+install(TARGETS equix equix_static
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
@@ -41,6 +60,7 @@ add_executable(equix-tests
   src/tests.c)
 include_directories(equix-tests
   include/)
+target_compile_definitions(equix-tests PRIVATE EQUIX_STATIC)
 target_link_libraries(equix-tests
   PRIVATE equix_static)
 
@@ -55,6 +75,7 @@ add_executable(equix-bench
 include_directories(equix-bench
   include/
   hashx/src/)
+target_compile_definitions(equix-bench PRIVATE EQUIX_STATIC)
 target_link_libraries(equix-bench
   PRIVATE equix_static
   PRIVATE ${CMAKE_THREAD_LIBS_INIT})
