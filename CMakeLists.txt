@@ -71,7 +71,8 @@ endif()
 
 add_executable(equix-bench
   src/bench.c
-  hashx/src/hashx_thread.c)
+  hashx/src/hashx_thread.c
+  hashx/src/hashx_time.c)
 include_directories(equix-bench
   include/
   hashx/src/)

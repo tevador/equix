@@ -2,13 +2,13 @@
 /* See LICENSE for licensing information */
 
 #include <stdio.h>
-#include <time.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 #include <equix.h>
 #include <test_utils.h>
 #include <hashx_thread.h>
+#include <hashx_time.h>
 
 typedef struct solver_output {
 	equix_solution sols[EQUIX_MAX_SOLS];
@@ -118,8 +118,8 @@ int main(int argc, char** argv) {
 	}
 	printf("Solving nonces %i-%i (interpret: %i, hugepages: %i, threads: %i) ...\n", start, start + nonces - 1, interpret, huge_pages, threads);
 	int total_sols = 0;
-	clock_t clock_start, clock_end;
-	clock_start = clock();
+	double time_start, time_end;
+	time_start = hashx_time();
 	if (threads > 1) {
 		for (int thd = 0; thd < threads; ++thd) {
 			jobs[thd].thread = hashx_thread_create(&worker, &jobs[thd]);
@@ -131,14 +131,11 @@ int main(int argc, char** argv) {
 	else {
 		worker(jobs);
 	}
-	clock_end = clock();
+	time_end = hashx_time();
 	for (int thd = 0; thd < threads; ++thd) {
 		total_sols += jobs[thd].total_sols;
 	}
-	double elapsed = (clock_end - clock_start) / (double)CLOCKS_PER_SEC;
-#ifndef _MSC_VER
-	elapsed /= threads;
-#endif
+	double elapsed = time_end - time_start;
 	printf("%f solutions/nonce\n", total_sols / (double)nonces);
 	printf("%f solutions/sec. (%i thread%s)\n", total_sols / elapsed, threads, threads > 1 ? "s" : "");
 	if (print_sols) {
@@ -153,7 +150,7 @@ int main(int argc, char** argv) {
 			}
 		}
 	}
-	clock_start = clock();
+	time_start = hashx_time();
 	for (int thd = 0; thd < threads; ++thd) {
 		worker_job* job = &jobs[thd];
 		solver_output* outptr = job->output;
@@ -168,8 +165,8 @@ int main(int argc, char** argv) {
 			outptr++;
 		}
 	}
-	clock_end = clock();
-	printf("%f verifications/sec. (1 thread)\n", total_sols / ((clock_end - clock_start) / (double)CLOCKS_PER_SEC));
+	time_end = hashx_time();
+	printf("%f verifications/sec. (1 thread)\n", total_sols / (time_end - time_start));
 	for (int thd = 0; thd < threads; ++thd) {
 		free(jobs[thd].output);
 	}
