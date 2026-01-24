@@ -16,12 +16,12 @@
 typedef uint16_t fine_item;
 
 typedef struct fine_bucket {
-	fine_item items[FINE_BUCKET_ITEMS];
+    fine_item items[FINE_BUCKET_ITEMS];
 } fine_bucket;
 
 typedef struct fine_hashtab {
-	uint8_t counts[NUM_FINE_BUCKETS];
-	fine_bucket buckets[NUM_FINE_BUCKETS];
+    uint8_t counts[NUM_FINE_BUCKETS];
+    fine_bucket buckets[NUM_FINE_BUCKETS];
 } fine_hashtab;
 
 typedef equix_idx stage1_idx_item; /* 16 bits */
@@ -29,20 +29,20 @@ typedef equix_idx stage1_idx_item; /* 16 bits */
 typedef uint64_t stage1_data_item; /* 52 bits */
 
 typedef struct stage1_idx_bucket {
-	stage1_idx_item items[COARSE_BUCKET_ITEMS];
+    stage1_idx_item items[COARSE_BUCKET_ITEMS];
 } stage1_idx_bucket;
 
 typedef struct stage1_data_bucket {
-	stage1_data_item items[COARSE_BUCKET_ITEMS];
+    stage1_data_item items[COARSE_BUCKET_ITEMS];
 } stage1_data_bucket;
 
 typedef struct stage1_idx_hashtab {
-	uint16_t counts[NUM_COARSE_BUCKETS];
-	stage1_idx_bucket buckets[NUM_COARSE_BUCKETS];
+    uint16_t counts[NUM_COARSE_BUCKETS];
+    stage1_idx_bucket buckets[NUM_COARSE_BUCKETS];
 } stage1_idx_hashtab;
 
 typedef struct stage1_data_hashtab {
-	stage1_data_bucket buckets[NUM_COARSE_BUCKETS];
+    stage1_data_bucket buckets[NUM_COARSE_BUCKETS];
 } stage1_data_hashtab;
 
 typedef uint32_t stage2_idx_item; /* 26 bits: 8 bits = left bucket index
@@ -50,20 +50,20 @@ typedef uint32_t stage2_idx_item; /* 26 bits: 8 bits = left bucket index
                                               9 bits = right item index */
 
 typedef struct stage2_idx_bucket {
-	stage2_idx_item items[COARSE_BUCKET_ITEMS];
+    stage2_idx_item items[COARSE_BUCKET_ITEMS];
 } stage2_idx_bucket;
 
 typedef struct stage2_idx_hashtab {
-	uint16_t counts[NUM_COARSE_BUCKETS];
-	stage2_idx_bucket buckets[NUM_COARSE_BUCKETS];
+    uint16_t counts[NUM_COARSE_BUCKETS];
+    stage2_idx_bucket buckets[NUM_COARSE_BUCKETS];
 } stage2_idx_hashtab;
 
 #ifdef SOLVER_PACKED_STAGE2
 #pragma pack(push, 1)
 typedef struct stage2_data_item {
-	uint32_t upper; /* 22 bits */
-	uint8_t middle; /* 8 bits */
-	uint8_t lower;  /* 7 bits */
+    uint32_t upper; /* 22 bits */
+    uint8_t middle; /* 8 bits */
+    uint8_t lower;  /* 7 bits */
 } stage2_data_item;
 #pragma pack(pop)
 #else
@@ -71,21 +71,21 @@ typedef uint64_t stage2_data_item; /* 37 bits */
 #endif
 
 typedef struct stage2_data_bucket {
-	stage2_data_item items[COARSE_BUCKET_ITEMS];
+    stage2_data_item items[COARSE_BUCKET_ITEMS];
 } stage2_data_bucket;
 
 typedef struct stage2_data_hashtab {
-	stage2_data_bucket buckets[NUM_COARSE_BUCKETS];
+    stage2_data_bucket buckets[NUM_COARSE_BUCKETS];
 } stage2_data_hashtab;
 
 typedef uint32_t stage3_data_item; /* 22 bits */
 
 typedef struct stage3_data_bucket {
-	stage3_data_item items[COARSE_BUCKET_ITEMS];
+    stage3_data_item items[COARSE_BUCKET_ITEMS];
 } stage3_data_bucket;
 
 typedef struct stage3_data_hashtab {
-	stage3_data_bucket buckets[NUM_COARSE_BUCKETS];
+    stage3_data_bucket buckets[NUM_COARSE_BUCKETS];
 } stage3_data_hashtab;
 
 typedef stage2_idx_hashtab stage3_idx_hashtab;
