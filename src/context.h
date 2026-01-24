@@ -6,13 +6,19 @@
 
 #include <equix.h>
 #include <hashx.h>
+#include <hashwx.h>
 
 typedef struct solver_heap solver_heap;
 
 typedef struct equix_ctx {
-    hashx_ctx* hash_func;
-    solver_heap* heap;
-    equix_ctx_flags flags;
+    union {
+        hashx_ctx* hash_v1;
+        hashwx_ctx* hash_v2;
+    };
+	solver_heap* heap;
+	equix_ctx_flags flags;
 } equix_ctx;
+
+typedef uint64_t solver_hash_func(equix_ctx* ctx, equix_idx index);
 
 #endif

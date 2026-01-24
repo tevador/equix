@@ -1,10 +1,10 @@
 # Copyright (c) 2020 tevador <tevador@gmail.com>
 # See LICENSE for licensing information
 
-cmake_minimum_required(VERSION 2.8.8)
+cmake_minimum_required(VERSION 3.10)
 
 set(EQUIX_VERSION 1)
-set(EQUIX_VERSION_MINOR 0)
+set(EQUIX_VERSION_MINOR 1)
 set(EQUIX_VERSION_PATCH 0)
 set(EQUIX_VERSION_STR "${EQUIX_VERSION}.${EQUIX_VERSION_MINOR}.${EQUIX_VERSION_PATCH}")
 
@@ -13,6 +13,7 @@ project(equix)
 add_definitions(-DHASHX_SIZE=8)
 
 add_subdirectory("hashx")
+add_subdirectory("hashwx")
 
 set(equix_sources
 src/context.c
@@ -30,11 +31,14 @@ set_property(TARGET equix PROPERTY PUBLIC_HEADER include/equix.h)
 include_directories(equix
   include/
   hashx/include/
-  hashx/src/)
+  hashx/src/
+  hashwx/include)
 target_compile_definitions(equix PRIVATE HASHX_STATIC)
+target_compile_definitions(equix PRIVATE HASHWX_STATIC)
 target_compile_definitions(equix PRIVATE EQUIX_SHARED)
 target_link_libraries(equix
-  PRIVATE hashx_static)
+  PRIVATE hashx_static
+  PRIVATE hashwx_static)
 set_target_properties(equix PROPERTIES VERSION ${EQUIX_VERSION_STR}
                                        SOVERSION ${EQUIX_VERSION})
 
@@ -42,13 +46,16 @@ add_library(equix_static STATIC ${equix_sources})
 set_property(TARGET equix_static PROPERTY POSITION_INDEPENDENT_CODE ON)
 set_target_properties(equix_static PROPERTIES OUTPUT_NAME equix)
 target_compile_definitions(equix_static PRIVATE HASHX_STATIC)
+target_compile_definitions(equix_static PRIVATE HASHWX_STATIC)
 target_compile_definitions(equix_static PRIVATE EQUIX_STATIC)
 include_directories(equix_static
   include/
   hashx/include/
-  hashx/src/)
+  hashx/src/
+  hashwx/include)
 target_link_libraries(equix_static
-  PRIVATE hashx_static)
+  PRIVATE hashx_static
+  PRIVATE hashwx_static)
 
 include(GNUInstallDirs)
 install(TARGETS equix equix_static
