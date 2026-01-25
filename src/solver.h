@@ -14,15 +14,15 @@
 #define EQUIX_FULL_MASK ((1ull << 60) - 1)
 
 static inline bool tree_cmp1(const equix_idx* left, const equix_idx* right) {
-	return *left <= *right;
+    return *left <= *right;
 }
 
 static inline bool tree_cmp2(const equix_idx* left, const equix_idx* right) {
-	return load32(left) <= load32(right);
+    return load32(left) <= load32(right);
 }
 
 static inline bool tree_cmp4(const equix_idx* left, const equix_idx* right) {
-	return load64(left) <= load64(right);
+    return load64(left) <= load64(right);
 }
 
 EQUIX_PRIVATE int equix_solver_solve(equix_ctx* ctx, solver_hash_func* hash_func, equix_solution output[EQUIX_MAX_SOLS]);

@@ -8,12 +8,12 @@
 #include "solver_heap.h"
 
 equix_ctx* equix_alloc(equix_ctx_flags flags) {
-	equix_ctx* ctx_failure = NULL;
-	equix_ctx* ctx = malloc(sizeof(equix_ctx));
-	if (ctx == NULL) {
-		goto failure;
-	}
-	ctx->flags = flags & (EQUIX_CTX_COMPILE | EQUIX_V2);
+    equix_ctx* ctx_failure = NULL;
+    equix_ctx* ctx = malloc(sizeof(equix_ctx));
+    if (ctx == NULL) {
+        goto failure;
+    }
+    ctx->flags = flags & (EQUIX_CTX_COMPILE | EQUIX_V2);
 
     if (flags & EQUIX_V2) {
         ctx->hash_v2 = hashwx_alloc(flags & EQUIX_CTX_COMPILE ?
@@ -37,40 +37,40 @@ equix_ctx* equix_alloc(equix_ctx_flags flags) {
             goto failure;
         }
     }
-	if (flags & EQUIX_CTX_SOLVE) {
-		if (flags & EQUIX_CTX_HUGEPAGES) {
-			ctx->heap = hashx_vm_alloc_huge(sizeof(solver_heap));
-		}
-		else {
-			ctx->heap = malloc(sizeof(solver_heap));
-		}
-		if (ctx->heap == NULL) {
-			goto failure;
-		}
-	}
-	ctx->flags = flags;
-	return ctx;
+    if (flags & EQUIX_CTX_SOLVE) {
+        if (flags & EQUIX_CTX_HUGEPAGES) {
+            ctx->heap = hashx_vm_alloc_huge(sizeof(solver_heap));
+        }
+        else {
+            ctx->heap = malloc(sizeof(solver_heap));
+        }
+        if (ctx->heap == NULL) {
+            goto failure;
+        }
+    }
+    ctx->flags = flags;
+    return ctx;
 failure:
-	equix_free(ctx);
-	return ctx_failure;
+    equix_free(ctx);
+    return ctx_failure;
 }
 
 void equix_free(equix_ctx* ctx) {
-	if (ctx != NULL && ctx != EQUIX_NOTSUPP) {
-		if (ctx->flags & EQUIX_CTX_SOLVE) {
-			if (ctx->flags & EQUIX_CTX_HUGEPAGES) {
-				hashx_vm_free(ctx->heap, sizeof(solver_heap));
-			}
-			else {
-				free(ctx->heap);
-			}
-		}
+    if (ctx != NULL && ctx != EQUIX_NOTSUPP) {
+        if (ctx->flags & EQUIX_CTX_SOLVE) {
+            if (ctx->flags & EQUIX_CTX_HUGEPAGES) {
+                hashx_vm_free(ctx->heap, sizeof(solver_heap));
+            }
+            else {
+                free(ctx->heap);
+            }
+        }
         if (ctx->flags & EQUIX_V2) {
             hashwx_free(ctx->hash_v2);
         }
         else {
             hashx_free(ctx->hash_v1);
         }
-		free(ctx);
-	}
+        free(ctx);
+    }
 }

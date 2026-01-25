@@ -15,14 +15,14 @@
 #include <blake2.h>
 
 static bool verify_order(const equix_solution* solution) {
-	return
-		tree_cmp4(&solution->idx[0], &solution->idx[4]) &
-		tree_cmp2(&solution->idx[0], &solution->idx[2]) &
-		tree_cmp2(&solution->idx[4], &solution->idx[6]) &
-		tree_cmp1(&solution->idx[0], &solution->idx[1]) &
-		tree_cmp1(&solution->idx[2], &solution->idx[3]) &
-		tree_cmp1(&solution->idx[4], &solution->idx[5]) &
-		tree_cmp1(&solution->idx[6], &solution->idx[7]);
+    return
+        tree_cmp4(&solution->idx[0], &solution->idx[4]) &
+        tree_cmp2(&solution->idx[0], &solution->idx[2]) &
+        tree_cmp2(&solution->idx[4], &solution->idx[6]) &
+        tree_cmp1(&solution->idx[0], &solution->idx[1]) &
+        tree_cmp1(&solution->idx[2], &solution->idx[3]) &
+        tree_cmp1(&solution->idx[4], &solution->idx[5]) &
+        tree_cmp1(&solution->idx[6], &solution->idx[7]);
 }
 
 static uint64_t sum_pair(equix_ctx* ctx, solver_hash_func* hash_func, equix_idx left, equix_idx right) {
@@ -33,34 +33,34 @@ static uint64_t sum_pair(equix_ctx* ctx, solver_hash_func* hash_func, equix_idx 
 
 static equix_result verify_internal(equix_ctx* ctx, solver_hash_func* hash_func, const equix_solution* solution) {
     uint64_t pair0 = sum_pair(ctx, hash_func, solution->idx[0], solution->idx[1]);
-	if (pair0 & EQUIX_STAGE1_MASK) {
-		return EQUIX_PARTIAL_SUM;
-	}
+    if (pair0 & EQUIX_STAGE1_MASK) {
+        return EQUIX_PARTIAL_SUM;
+    }
     uint64_t pair1 = sum_pair(ctx, hash_func, solution->idx[2], solution->idx[3]);
-	if (pair1 & EQUIX_STAGE1_MASK) {
-		return EQUIX_PARTIAL_SUM;
-	}
-	uint64_t pair4 = pair0 + pair1;
-	if (pair4 & EQUIX_STAGE2_MASK) {
-		return EQUIX_PARTIAL_SUM;
-	}
+    if (pair1 & EQUIX_STAGE1_MASK) {
+        return EQUIX_PARTIAL_SUM;
+    }
+    uint64_t pair4 = pair0 + pair1;
+    if (pair4 & EQUIX_STAGE2_MASK) {
+        return EQUIX_PARTIAL_SUM;
+    }
     uint64_t pair2 = sum_pair(ctx, hash_func, solution->idx[4], solution->idx[5]);
-	if (pair2 & EQUIX_STAGE1_MASK) {
-		return EQUIX_PARTIAL_SUM;
-	}
+    if (pair2 & EQUIX_STAGE1_MASK) {
+        return EQUIX_PARTIAL_SUM;
+    }
     uint64_t pair3 = sum_pair(ctx, hash_func, solution->idx[6], solution->idx[7]);
-	if (pair3 & EQUIX_STAGE1_MASK) {
-		return EQUIX_PARTIAL_SUM;
-	}
-	uint64_t pair5 = pair2 + pair3;
-	if (pair5 & EQUIX_STAGE2_MASK) {
-		return EQUIX_PARTIAL_SUM;
-	}
-	uint64_t pair6 = pair4 + pair5;
-	if (pair6 & EQUIX_FULL_MASK) {
-		return EQUIX_FINAL_SUM;
-	}
-	return EQUIX_OK;
+    if (pair3 & EQUIX_STAGE1_MASK) {
+        return EQUIX_PARTIAL_SUM;
+    }
+    uint64_t pair5 = pair2 + pair3;
+    if (pair5 & EQUIX_STAGE2_MASK) {
+        return EQUIX_PARTIAL_SUM;
+    }
+    uint64_t pair6 = pair4 + pair5;
+    if (pair6 & EQUIX_FULL_MASK) {
+        return EQUIX_FINAL_SUM;
+    }
+    return EQUIX_OK;
 }
 
 static uint64_t hashfunc_v1(equix_ctx* ctx, equix_idx index) {
@@ -103,18 +103,18 @@ static void make_hashwx_ctx(
 }
 
 int equix_solve(
-	equix_ctx* ctx,
-	const void* challenge,
-	size_t challenge_size,
-	equix_solution output[EQUIX_MAX_SOLS])
+    equix_ctx* ctx,
+    const void* challenge,
+    size_t challenge_size,
+    equix_solution output[EQUIX_MAX_SOLS])
 {
     assert(ctx != NULL);
     assert(challenge != NULL || challenge_size == 0);
     assert(output != NULL);
 
-	if ((ctx->flags & EQUIX_CTX_SOLVE) == 0) {
-		return 0;
-	}
+    if ((ctx->flags & EQUIX_CTX_SOLVE) == 0) {
+        return 0;
+    }
 
     if ((ctx->flags & EQUIX_V2) != 0) {
         make_hashwx_ctx(ctx, challenge, challenge_size);
@@ -122,26 +122,26 @@ int equix_solve(
     }
 
     if (!hashx_make(ctx->hash_v1, challenge, challenge_size)) {
-		return 0;
-	}
+        return 0;
+    }
 
     return equix_solver_solve(ctx, &hashfunc_v1, output);
 }
 
 
 equix_result equix_verify(
-	equix_ctx* ctx,
-	const void* challenge,
-	size_t challenge_size,
-	const equix_solution* solution)
+    equix_ctx* ctx,
+    const void* challenge,
+    size_t challenge_size,
+    const equix_solution* solution)
 {
     assert(ctx != NULL);
     assert(challenge != NULL || challenge_size == 0);
     assert(solution != NULL);
 
-	if (!verify_order(solution)) {
-		return EQUIX_ORDER;
-	}
+    if (!verify_order(solution)) {
+        return EQUIX_ORDER;
+    }
 
     if ((ctx->flags & EQUIX_V2) != 0) {
         make_hashwx_ctx(ctx, challenge, challenge_size);
@@ -149,7 +149,7 @@ equix_result equix_verify(
     }
 
     if (!hashx_make(ctx->hash_v1, challenge, challenge_size)) {
-		return EQUIX_CHALLENGE;
-	}
+        return EQUIX_CHALLENGE;
+    }
     return verify_internal(ctx, &hashfunc_v1, solution);
 }
