@@ -67,11 +67,12 @@ static void print_help(char* executable) {
     printf("  --interpret   use HashX interpreter\n");
     printf("  --hugepages   use hugepages\n");
     printf("  --sols        print all solutions\n");
+    printf("  --v2          use HashWX instead of HashX\n");
 }
 
 int main(int argc, char** argv) {
     int nonces, start, threads;
-    bool interpret, huge_pages, print_sols, help;
+    bool interpret, huge_pages, print_sols, help, v2;
     read_option("--help", argc, argv, &help);
     if (help) {
         print_help(argv[0]);
@@ -82,6 +83,7 @@ int main(int argc, char** argv) {
     read_option("--interpret", argc, argv, &interpret);
     read_option("--hugepages", argc, argv, &huge_pages);
     read_option("--sols", argc, argv, &print_sols);
+    read_option("--v2", argc, argv, &v2);
     read_int_option("--threads", argc, argv, &threads, 1);
     equix_ctx_flags flags = EQUIX_CTX_SOLVE;
     if (!interpret) {
@@ -89,6 +91,9 @@ int main(int argc, char** argv) {
     }
     if (huge_pages) {
         flags |= EQUIX_CTX_HUGEPAGES;
+    }
+    if (v2) {
+        flags |= EQUIX_V2;
     }
     worker_job* jobs = malloc(sizeof(worker_job) * threads);
     if (jobs == NULL) {
@@ -116,7 +121,7 @@ int main(int argc, char** argv) {
             return 1;
         }
     }
-    printf("Solving nonces %i-%i (interpret: %i, hugepages: %i, threads: %i) ...\n", start, start + nonces - 1, interpret, huge_pages, threads);
+    printf("Solving nonces %i-%i (interpret: %i, hugepages: %i, threads: %i, v2: %i) ...\n", start, start + nonces - 1, interpret, huge_pages, threads, v2);
     int total_sols = 0;
     double time_start, time_end;
     time_start = hashx_time();

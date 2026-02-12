@@ -55,6 +55,7 @@ typedef enum equix_ctx_flags {
     EQUIX_CTX_SOLVE = 1,        /* Context for solving */
     EQUIX_CTX_COMPILE = 2,      /* Compile internal hash function */
     EQUIX_CTX_HUGEPAGES = 4,    /* Allocate solver memory using HugePages */
+    EQUIX_V2 = 8,               /* Use HashWX instead of HashX */
 } equix_ctx_flags;
 
 /* Sentinel value used to indicate unsupported type */

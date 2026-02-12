@@ -47,12 +47,6 @@ typedef stage1_idx_item s1_idx;
 typedef stage2_idx_item s2_idx;
 typedef stage3_idx_item s3_idx;
 
-static FORCE_INLINE uint64_t hash_value(hashx_ctx* hash_func, equix_idx index) {
-    char hash[HASHX_SIZE];
-    hashx_exec(hash_func, index, hash);
-    return load64(hash);
-}
-
 static void build_solution_stage1(equix_idx* output, solver_heap* heap, s2_idx root) {
     u32 bucket = ITEM_BUCKET(root);
     u32 bucket_inv = INVERT_BUCKET(bucket);
@@ -93,10 +87,10 @@ static void build_solution(equix_solution* solution, solver_heap* heap, s3_idx l
     }
 }
 
-static void solve_stage0(hashx_ctx* hash_func, solver_heap* heap) {
+static void solve_stage0(equix_ctx* ctx, solver_hash_func* hash_func, solver_heap* heap) {
     CLEAR(heap->stage1_indices.counts);
     for (u32 i = 0; i < INDEX_SPACE; ++i) {
-        uint64_t value = hash_value(hash_func, i);
+        uint64_t value = hash_func(ctx, i);
         u32 bucket_idx = value % NUM_COARSE_BUCKETS;
         u32 item_idx = STAGE1_SIZE(bucket_idx);
         if (item_idx >= COARSE_BUCKET_ITEMS)
@@ -259,11 +253,12 @@ static int solve_stage3(solver_heap* heap, equix_solution output[EQUIX_MAX_SOLS]
 }
 
 int equix_solver_solve(
-    hashx_ctx* hash_func,
-    solver_heap* heap,
+    equix_ctx* ctx,
+    solver_hash_func* hash_func,
     equix_solution output[EQUIX_MAX_SOLS])
 {
-    solve_stage0(hash_func, heap);
+    solver_heap* heap = ctx->heap;
+    solve_stage0(ctx, hash_func, heap);
     solve_stage1(heap);
     solve_stage2(heap);
     return solve_stage3(heap, output);

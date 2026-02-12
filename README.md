@@ -35,11 +35,16 @@ H(0x74a6) = 0xacccc4ad2d06bcd \                        |
 H(0xe259) = 0x2de76cb9d341433 /
 ```
 
+## Equi-X v2
+
+Equi-X v2 replaces [HashX](https://github.com/tevador/hashx) with [HashWX](https://github.com/tevador/hashwx). It is recommended to pass the `EQUIX_V2` flag to `equix_alloc` to activate the new version unless backwards compatibility with Equi-X v1 legacy applications is required.
+
 ## Performance
 
 |Algorithm |n  |k  |memory |solution size|verification <sup>1</sup>|CPU perf. <sup>2</sup>|GPU perf. <sup>3</sup>|
 |----------|---|---|-------|-------------|------------|-----------|----------|
 |**Equi-X**|60 |3  |1.8 MiB|16 bytes     |~50 μs      |2400 Sol/s|     ?    |
+|**Equi-X v2**|60 |3  |1.8 MiB|16 bytes     |~12 μs      |400 Sol/s|     ?    |
 |Zcash     |200|9  |144 MiB|1344 bytes   |>150 μs     |30 Sol/s  |~400 Sol/s <sup>4</sup>|
 |BTG       |144|5  |2.5 GiB|100 bytes    |~10 μs      |1 Sol/s   |~45 Sol/s <sup>5</sup>|
 

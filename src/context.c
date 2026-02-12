@@ -13,15 +13,29 @@ equix_ctx* equix_alloc(equix_ctx_flags flags) {
     if (ctx == NULL) {
         goto failure;
     }
-    ctx->flags = flags & EQUIX_CTX_COMPILE;
-    ctx->hash_func = hashx_alloc(flags & EQUIX_CTX_COMPILE ?
-        HASHX_COMPILED : HASHX_INTERPRETED);
-    if (ctx->hash_func == NULL) {
-        goto failure;
+    ctx->flags = flags & (EQUIX_CTX_COMPILE | EQUIX_V2);
+
+    if (flags & EQUIX_V2) {
+        ctx->hash_v2 = hashwx_alloc(flags & EQUIX_CTX_COMPILE ?
+            HASHWX_COMPILED : HASHWX_INTERPRETED);
+        if (ctx->hash_v2 == NULL) {
+            goto failure;
+        }
+        if (ctx->hash_v2 == HASHWX_NOTSUPP) {
+            ctx_failure = EQUIX_NOTSUPP;
+            goto failure;
+        }
     }
-    if (ctx->hash_func == HASHX_NOTSUPP) {
-        ctx_failure = EQUIX_NOTSUPP;
-        goto failure;
+    else {
+        ctx->hash_v1 = hashx_alloc(flags & EQUIX_CTX_COMPILE ?
+            HASHX_COMPILED : HASHX_INTERPRETED);
+        if (ctx->hash_v1 == NULL) {
+            goto failure;
+        }
+        if (ctx->hash_v1 == HASHX_NOTSUPP) {
+            ctx_failure = EQUIX_NOTSUPP;
+            goto failure;
+        }
     }
     if (flags & EQUIX_CTX_SOLVE) {
         if (flags & EQUIX_CTX_HUGEPAGES) {
@@ -51,7 +65,12 @@ void equix_free(equix_ctx* ctx) {
                 free(ctx->heap);
             }
         }
-        hashx_free(ctx->hash_func);
+        if (ctx->flags & EQUIX_V2) {
+            hashwx_free(ctx->hash_v2);
+        }
+        else {
+            hashx_free(ctx->hash_v1);
+        }
         free(ctx);
     }
 }
