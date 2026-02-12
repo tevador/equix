@@ -1,7 +1,7 @@
 # Copyright (c) 2020 tevador <tevador@gmail.com>
 # See LICENSE for licensing information
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 
 set(EQUIX_VERSION 1)
 set(EQUIX_VERSION_MINOR 1)

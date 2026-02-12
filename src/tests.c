@@ -102,6 +102,28 @@ static bool test_permutations() {
     return true;
 }
 
+static bool test_alloc_v2() {
+    ctx = equix_alloc(EQUIX_CTX_SOLVE | EQUIX_V2);
+    assert(ctx != NULL && ctx != EQUIX_NOTSUPP);
+    return true;
+}
+
+static bool test_solve_v2() {
+    int num_solutions = 0;
+    for (nonce = 0; num_solutions == 0 && nonce < 20; ++nonce) {
+        num_solutions = equix_solve(ctx, &nonce, sizeof(nonce), solution);
+    }
+    --nonce;
+    assert(num_solutions > 0);
+    return true;
+}
+
+static bool test_verify_v2() {
+    equix_result result = equix_verify(ctx, &nonce, sizeof(nonce), &solution[0]);
+    assert(result == EQUIX_OK);
+    return true;
+}
+
 #define RUN_TEST(x) run_test(#x, &x)
 
 static void run_test(const char* name, test_func* func) {
@@ -117,6 +139,10 @@ int main() {
     RUN_TEST(test_verify3);
     RUN_TEST(test_verify4);
     RUN_TEST(test_permutations);
+    RUN_TEST(test_free);
+    RUN_TEST(test_alloc_v2);
+    RUN_TEST(test_solve_v2);
+    RUN_TEST(test_verify_v2);
     RUN_TEST(test_free);
 
     printf("\nAll tests were successful\n");
