@@ -67,7 +67,7 @@ static void print_help(char* executable) {
     printf("  --interpret   use HashX interpreter\n");
     printf("  --hugepages   use hugepages\n");
     printf("  --sols        print all solutions\n");
-    printf("  --v2          use HashWX instead of HashX");
+    printf("  --v2          use HashWX instead of HashX\n");
 }
 
 int main(int argc, char** argv) {
