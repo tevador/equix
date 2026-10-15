@@ -1,3 +1,5 @@
+### Note: Equi-X has been deprecated. New projects should use [HashWX](https://github.com/tevador/hashwx).
+
 # Equi-X
 
 Equi-X is a CPU-friendly [client puzzle](https://en.wikipedia.org/wiki/Client_Puzzle_Protocol)
